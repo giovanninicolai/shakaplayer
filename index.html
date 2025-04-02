@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shaka Player - Stream Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.5/shaka-player.compiled.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        #video-container {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+        }
+        .error-message {
+            color: red;
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="video-container">
+        <video id="video" controls autoplay></video>
+    </div>
+    <div id="error" class="error-message"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verifica che il browser supporti Shaka Player
+            if (shaka.Player.isBrowserSupported()) {
+                // Inizializza il player
+                initPlayer();
+            } else {
+                // Mostra un errore se il browser non è supportato
+                document.getElementById('error').textContent = 'Browser non supportato da Shaka Player.';
+            }
+        });
+
+        function initPlayer() {
+            // Ottieni il parametro 'stream' dall'URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const streamUrl = urlParams.get('stream');
+            
+            if (!streamUrl) {
+                document.getElementById('error').textContent = 'Nessun URL di streaming fornito. Usa ?stream=URL nel link.';
+                return;
+            }
+
+            const video = document.getElementById('video');
+            const player = new shaka.Player(video);
+
+            // Ascolta gli errori
+            player.addEventListener('error', onErrorEvent);
+
+            // Prova a caricare il manifest
+            player.load(streamUrl).then(function() {
+                // Lo streaming è stato caricato con successo
+                console.log('Lo stream è stato caricato con successo');
+            }).catch(onError);
+        }
+
+        function onErrorEvent(event) {
+            // Estrai l'errore dall'evento
+            onError(event.detail);
+        }
+
+        function onError(error) {
+            // Mostra l'errore
+            console.error('Errore', error);
+            document.getElementById('error').textContent = 'Errore durante il caricamento: ' + error.message;
+        }
+    </script>
+</body>
+</html>
